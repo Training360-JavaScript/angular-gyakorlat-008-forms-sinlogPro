@@ -4,27 +4,39 @@
       <div class="form-group">
         <label for="">Name</label>
         <input name="name" [(ngModel)]="event.name" type="text"
-          class="form-control" pattern=".{8,}" required>
-        <div [hidden]="eventForm.controls.name?.valid" class="error-message">
-          The name of the event must be...
+          class="form-control" pattern=".{8,25}" required placeholder="Flashspan Event">
+        <div [hidden]="eventForm.controls['name']?.valid || eventForm.controls['name']?.pristine" class="error-message">
+          The name of the event must be between 8 and 25 characters long.
         </div>
+
       </div>
       <div class="form-group">
         <label for="">Date</label>
         <input name="date" [(ngModel)]="event.date" type="text"
-          class="form-control">
+          class="form-control" pattern="^(0?[1-9]|1[012])\/(0?[1-9]|[12][0-9]|3[01])\/\d{4}$" required placeholder="4/29/2021">
+        <div [hidden]="eventForm.controls['date']?.valid || eventForm.controls['date']?.pristine" class="error-message">
+          The format of the date must be 'Day-Month-Year with leading zeros' format (17/02/2009).
+        </div>
       </div>
       <div class="form-group">
         <label for="">Time</label>
-        <input name="time" [(ngModel)]="event.time" type="text" class="form-control">
+        <input name="time" [(ngModel)]="event.time" type="text"
+          class="form-control" pattern="([1-9]|1[012]):([0-5]\d)\s(AM|PM)" required placeholder="4:16 AM">
+          <div [hidden]="eventForm.controls['time']?.valid || eventForm.controls['time']?.pristine" class="error-message">
+            The format of the time must be 12-hour format and it should be end with 'AM' or 'PM' (10:13 PM, 8:51 AM).
+          </div>
       </div>
       <div class="form-group">
         <label for="">Location</label>
-        <input name="location" [(ngModel)]="event.location" type="text" class="form-control">
+        <input name="location" [(ngModel)]="event.location" type="text"
+          class="form-control" pattern="^\d{1,5}\s[A-Ű][a-ű]{1,30}\s[A-Ű][a-ű]{1,30}.*$" required placeholder="60929 Armistice Junction">
+          <div [hidden]="eventForm.controls['location']?.valid || eventForm.controls['location']?.pristine" class="error-message">
+            The format of the location must be 'address-number City Country' format (58906 Emmet Trail).
+          </div>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block btn-lg">
-        <i class="fa fa-save"></i>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitButton" [disabled]="eventForm.submitted">
+        <i class="fa fa-save"></i> <span></span>
       </button>
     </form>
   </div>

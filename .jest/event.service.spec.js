@@ -5367,18 +5367,18 @@
 
   // node_modules/rxjs/dist/esm5/internal/Observable.js
   var Observable = function() {
-    function Observable2(subscribe) {
+    function Observable3(subscribe) {
       if (subscribe) {
         this._subscribe = subscribe;
       }
     }
-    Observable2.prototype.lift = function(operator) {
-      var observable2 = new Observable2();
+    Observable3.prototype.lift = function(operator) {
+      var observable2 = new Observable3();
       observable2.source = this;
       observable2.operator = operator;
       return observable2;
     };
-    Observable2.prototype.subscribe = function(observerOrNext, error3, complete) {
+    Observable3.prototype.subscribe = function(observerOrNext, error3, complete) {
       var _this = this;
       var subscriber = isSubscriber(observerOrNext) ? observerOrNext : new SafeSubscriber(observerOrNext, error3, complete);
       errorContext(function() {
@@ -5387,14 +5387,14 @@
       });
       return subscriber;
     };
-    Observable2.prototype._trySubscribe = function(sink) {
+    Observable3.prototype._trySubscribe = function(sink) {
       try {
         return this._subscribe(sink);
       } catch (err) {
         sink.error(err);
       }
     };
-    Observable2.prototype.forEach = function(next, promiseCtor) {
+    Observable3.prototype.forEach = function(next, promiseCtor) {
       var _this = this;
       promiseCtor = getPromiseCtor(promiseCtor);
       return new promiseCtor(function(resolve, reject) {
@@ -5409,21 +5409,21 @@
         }, reject, resolve);
       });
     };
-    Observable2.prototype._subscribe = function(subscriber) {
+    Observable3.prototype._subscribe = function(subscriber) {
       var _a;
       return (_a = this.source) === null || _a === void 0 ? void 0 : _a.subscribe(subscriber);
     };
-    Observable2.prototype[observable] = function() {
+    Observable3.prototype[observable] = function() {
       return this;
     };
-    Observable2.prototype.pipe = function() {
+    Observable3.prototype.pipe = function() {
       var operations = [];
       for (var _i = 0; _i < arguments.length; _i++) {
         operations[_i] = arguments[_i];
       }
       return pipeFromArray(operations)(this);
     };
-    Observable2.prototype.toPromise = function(promiseCtor) {
+    Observable3.prototype.toPromise = function(promiseCtor) {
       var _this = this;
       promiseCtor = getPromiseCtor(promiseCtor);
       return new promiseCtor(function(resolve, reject) {
@@ -5437,10 +5437,10 @@
         });
       });
     };
-    Observable2.create = function(subscribe) {
-      return new Observable2(subscribe);
+    Observable3.create = function(subscribe) {
+      return new Observable3(subscribe);
     };
-    return Observable2;
+    return Observable3;
   }();
   function getPromiseCtor(promiseCtor) {
     var _a;
@@ -6214,6 +6214,30 @@
       source.subscribe(new OperatorSubscriber(subscriber, function(value) {
         return predicate.call(thisArg, value, index++) && subscriber.next(value);
       }));
+    });
+  }
+
+  // node_modules/rxjs/dist/esm5/internal/operators/catchError.js
+  function catchError(selector) {
+    return operate(function(source, subscriber) {
+      var innerSub = null;
+      var syncUnsub = false;
+      var handledResult;
+      innerSub = source.subscribe(new OperatorSubscriber(subscriber, void 0, void 0, function(err) {
+        handledResult = innerFrom(selector(err, catchError(selector)(source)));
+        if (innerSub) {
+          innerSub.unsubscribe();
+          innerSub = null;
+          handledResult.subscribe(subscriber);
+        } else {
+          syncUnsub = true;
+        }
+      }));
+      if (syncUnsub) {
+        innerSub.unsubscribe();
+        innerSub = null;
+        handledResult.subscribe(subscriber);
+      }
     });
   }
 
@@ -42158,13 +42182,26 @@ If '${name}' is a directive input, make sure the directive is imported by the cu
       return this.http.get(`${this.eventsUrl}/${id}`);
     }
     update(event) {
+      console.log("update working...");
       return this.http.patch(`${this.eventsUrl}/${event.id}`, event);
     }
     create(event) {
-      return this.http.post(this.eventsUrl, event);
+      console.log("create working...");
+      const url = `${this.eventsUrl}`;
+      console.log(event);
+      console.log(url);
+      return this.http.post(url, event).pipe(catchError(this.handleError("create", [])));
     }
     remove(id) {
-      return this.http.delete(`${this.eventsUrl}/${id}`);
+      console.log("remove working... | id: ", id);
+      const url = `${this.eventsUrl}/${id}`;
+      return this.http.delete(url).pipe(catchError(this.handleError("create", [])));
+    }
+    handleError(operation = "operation", result) {
+      return (error3) => {
+        console.error(error3);
+        return of(result);
+      };
     }
   };
   EventService = __decorateClass([

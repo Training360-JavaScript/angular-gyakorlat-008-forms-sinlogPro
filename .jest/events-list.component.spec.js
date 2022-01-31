@@ -5167,18 +5167,18 @@
       init_isFunction();
       init_errorContext();
       Observable = function() {
-        function Observable2(subscribe) {
+        function Observable3(subscribe) {
           if (subscribe) {
             this._subscribe = subscribe;
           }
         }
-        Observable2.prototype.lift = function(operator) {
-          var observable2 = new Observable2();
+        Observable3.prototype.lift = function(operator) {
+          var observable2 = new Observable3();
           observable2.source = this;
           observable2.operator = operator;
           return observable2;
         };
-        Observable2.prototype.subscribe = function(observerOrNext, error3, complete) {
+        Observable3.prototype.subscribe = function(observerOrNext, error3, complete) {
           var _this = this;
           var subscriber = isSubscriber(observerOrNext) ? observerOrNext : new SafeSubscriber(observerOrNext, error3, complete);
           errorContext(function() {
@@ -5187,14 +5187,14 @@
           });
           return subscriber;
         };
-        Observable2.prototype._trySubscribe = function(sink) {
+        Observable3.prototype._trySubscribe = function(sink) {
           try {
             return this._subscribe(sink);
           } catch (err) {
             sink.error(err);
           }
         };
-        Observable2.prototype.forEach = function(next, promiseCtor) {
+        Observable3.prototype.forEach = function(next, promiseCtor) {
           var _this = this;
           promiseCtor = getPromiseCtor(promiseCtor);
           return new promiseCtor(function(resolve, reject) {
@@ -5209,21 +5209,21 @@
             }, reject, resolve);
           });
         };
-        Observable2.prototype._subscribe = function(subscriber) {
+        Observable3.prototype._subscribe = function(subscriber) {
           var _a;
           return (_a = this.source) === null || _a === void 0 ? void 0 : _a.subscribe(subscriber);
         };
-        Observable2.prototype[observable] = function() {
+        Observable3.prototype[observable] = function() {
           return this;
         };
-        Observable2.prototype.pipe = function() {
+        Observable3.prototype.pipe = function() {
           var operations = [];
           for (var _i = 0; _i < arguments.length; _i++) {
             operations[_i] = arguments[_i];
           }
           return pipeFromArray(operations)(this);
         };
-        Observable2.prototype.toPromise = function(promiseCtor) {
+        Observable3.prototype.toPromise = function(promiseCtor) {
           var _this = this;
           promiseCtor = getPromiseCtor(promiseCtor);
           return new promiseCtor(function(resolve, reject) {
@@ -5237,10 +5237,10 @@
             });
           });
         };
-        Observable2.create = function(subscribe) {
-          return new Observable2(subscribe);
+        Observable3.create = function(subscribe) {
+          return new Observable3(subscribe);
         };
-        return Observable2;
+        return Observable3;
       }();
     }
   });
@@ -7029,6 +7029,7 @@
       init_of();
       init_empty();
       init_types();
+      init_catchError();
     }
   });
 
@@ -43000,6 +43001,7 @@ If '${name}' is a directive input, make sure the directive is imported by the cu
       init_core();
       init_http();
       init_core();
+      init_esm5();
       EventService = class {
         constructor(http) {
           this.http = http;
@@ -43012,13 +43014,26 @@ If '${name}' is a directive input, make sure the directive is imported by the cu
           return this.http.get(`${this.eventsUrl}/${id}`);
         }
         update(event) {
+          console.log("update working...");
           return this.http.patch(`${this.eventsUrl}/${event.id}`, event);
         }
         create(event) {
-          return this.http.post(this.eventsUrl, event);
+          console.log("create working...");
+          const url = `${this.eventsUrl}`;
+          console.log(event);
+          console.log(url);
+          return this.http.post(url, event).pipe(catchError(this.handleError("create", [])));
         }
         remove(id) {
-          return this.http.delete(`${this.eventsUrl}/${id}`);
+          console.log("remove working... | id: ", id);
+          const url = `${this.eventsUrl}/${id}`;
+          return this.http.delete(url).pipe(catchError(this.handleError("create", [])));
+        }
+        handleError(operation = "operation", result) {
+          return (error3) => {
+            console.error(error3);
+            return of(result);
+          };
         }
       };
       EventService = __decorateClass([
@@ -43289,8 +43304,8 @@ If '${name}' is a directive input, make sure the directive is imported by the cu
       <h3>All of the events should show below</h3>\r
     </div>\r
     <div class="col-2 text-right">\r
-      <button [routerLink]="['event/' + 0]" class="btn btn-success btn-block">\r
-        <i class="fa fa-plus"></i>\r
+      <button class="btn btn-success btn-block" [routerLink]="['event/', '0']">\r
+        Create new event\r
       </button>\r
     </div>\r
   </div>\r
@@ -43310,17 +43325,16 @@ If '${name}' is a directive input, make sure the directive is imported by the cu
         <td>{{event.name}}</td>\r
         <td>{{event.date}} </td>\r
         <td>{{event.time}}</td>\r
-        <td>{{event.location.address}}, {{event.location.city}},\r
-          {{event.location.country}}</td>\r
+        <td>{{event.location}}</td>\r
         <td>\r
           <div class="btn-group">\r
             <button [routerLink]="['event/' + event.id]" class="btn btn-info">\r
               <i class="fa fa-pencil"></i>\r
             </button>\r
-            <button (click)="onDelete(event.id)" class="btn btn-danger"\r
-              type="button">\r
-              <i class="fa fa-trash"></i>\r
+            <button (click)="onDelete(event.id)" class="btn btn-danger">\r
+              <i class="fa fa-trash" aria-hidden="true"></i>\r
             </button>\r
+\r
           </div>\r
         </td>\r
       </tr>\r
@@ -47241,13 +47255,16 @@ If '${name}' is a directive input, make sure the directive is imported by the cu
         ngOnInit() {
         }
         onDelete(id) {
-          this.eventService.remove(id).subscribe((ev) => this.router.navigate([""]));
-        }
-        onUpdate(event) {
-          if (event.id === 0) {
-            this.eventService.create(event);
-          }
-          this.eventService.update(event);
+          this.eventService.remove(id).subscribe({
+            next: (ev) => {
+              console.log("deleted event: ", ev);
+              this.eventList$ = this.eventService.getAll();
+            },
+            error: (err) => console.log(err),
+            complete: () => {
+              console.log("Observer got a complete notification");
+            }
+          });
         }
       };
       EventsListComponent = __decorateClass([

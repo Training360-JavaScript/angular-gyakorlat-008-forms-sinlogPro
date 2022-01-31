@@ -1,0 +1,33 @@
+.error-message {
+  font-size: 0.75rem;
+  color: red;
+  font-style: italic;
+
+  animation-name: error-animation;
+  animation-duration: 2s;
+}
+
+
+@keyframes error-animation {
+  from {
+    color: #fff;
+  }
+
+  to {
+    color: red;
+  }
+}
+
+/* input.ng-untouched {
+    background-color: rgb(233, 235, 210);
+}
+
+input.ng-touched.ng-invalid {
+    background-color: rgb(207, 224, 20);
+}
+
+input.ng-touched.ng-valid {
+    background-color: rgb(100, 146, 98);
+} */
+
+
